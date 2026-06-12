@@ -1,0 +1,743 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- This URDF was automatically created by SolidWorks to URDF Exporter! Originally created by Stephen Brawner (brawner@gmail.com) 
+     Commit Version: 1.6.0-4-g7f85cfe  Build Version: 1.6.7995.38578
+     For more information, please see http://wiki.ros.org/sw_urdf_exporter -->
+<robot
+  name="一条狗2.SLDASM">
+  <link
+    name="shenti_link">
+    <inertial>
+      <origin
+        xyz="-0.00025249 0.0005246 -0.035538"
+        rpy="0 0 0" />
+      <mass
+        value="1.2599" />
+      <inertia
+        ixx="0.001002"
+        ixy="4.1543E-11"
+        ixz="-1.9503E-11"
+        iyy="0.00216"
+        iyz="-3.1703E-11"
+        izz="0.0026988" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://一条狗2.SLDASM/meshes/shenti_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 1 1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://一条狗2.SLDASM/meshes/shenti_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <link
+    name="zuoqiandatui_Link">
+    <inertial>
+      <origin
+        xyz="0.00335217070301841 0.0469303898415219 0.0122168837736807"
+        rpy="0 0 0" />
+      <mass
+        value="0.0505056144158122" />
+      <inertia
+        ixx="0.000135004349670867"
+        ixy="-8.56879612297836E-06"
+        ixz="-1.61606028931401E-09"
+        iyy="1.56532608151023E-05"
+        iyz="-2.26248440483744E-08"
+        izz="0.000150392032383359" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://一条狗2.SLDASM/meshes/zuoqiandatui_Link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 1 1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://一条狗2.SLDASM/meshes/zuoqiandatui_Link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="zuoqiandatui_joint"
+    type="revolute">
+    <origin
+      xyz="0.1043 0.17099 -0.05345"
+      rpy="-1.5708 1.2157 -1.5708" />
+    <parent
+      link="shenti_link" />
+    <child
+      link="zuoqiandatui_Link" />
+    <axis
+      xyz="0 0 -1" />
+    <limit
+      lower="-3.14"
+      upper="3.14"
+      effort="0"
+      velocity="0" />
+  </joint>
+  <link
+    name="zuoqianxiaotui_Link">
+    <inertial>
+      <origin
+        xyz="-0.00058722 0.073589 -0.0024208"
+        rpy="0 0 0" />
+      <mass
+        value="0.16453" />
+      <inertia
+        ixx="0.00017626"
+        ixy="-3.3589E-06"
+        ixz="-1.3038E-13"
+        iyy="4.136E-05"
+        iyz="-2.251E-07"
+        izz="0.00017716" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://一条狗2.SLDASM/meshes/zuoqianxiaotui_Link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 1 1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://一条狗2.SLDASM/meshes/zuoqianxiaotui_Link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="zuoqianxiaotui_joint"
+    type="revolute">
+    <origin
+      xyz="0.0099746 0.13964 0.018"
+      rpy="0 0 -2.8107" />
+    <parent
+      link="zuoqiandatui_Link" />
+    <child
+      link="zuoqianxiaotui_Link" />
+    <axis
+      xyz="0 0 1" />
+    <limit
+      lower="-3.14"
+      upper="3.14"
+      effort="0"
+      velocity="0" />
+  </joint>
+  <link
+    name="zuoqianlun_Link">
+    <inertial>
+      <origin
+        xyz="-8.93719393206815E-05 6.74759675753228E-05 0.0199376558603583"
+        rpy="0 0 0" />
+      <mass
+        value="0.201564584654321" />
+      <inertia
+        ixx="0.00010755486642454"
+        ixy="-2.72293748193098E-23"
+        ixz="2.07353499629694E-20"
+        iyy="0.00010755486642454"
+        iyz="-2.29805110770055E-21"
+        izz="0.000160858088995815" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://一条狗2.SLDASM/meshes/zuoqianlun_Link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 1 1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://一条狗2.SLDASM/meshes/zuoqianlun_Link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="zuoqianlun_joint"
+    type="revolute">
+    <origin
+      xyz="0 0.14011 0.0301"
+      rpy="0 0 2.2175" />
+    <parent
+      link="zuoqianxiaotui_Link" />
+    <child
+      link="zuoqianlun_Link" />
+    <axis
+      xyz="0 0 1" />
+    <limit
+      lower="-3.14"
+      upper="3.14"
+      effort="0"
+      velocity="0" />
+  </joint>
+  <link
+    name="zuohoudatui_Link">
+    <inertial>
+      <origin
+        xyz="-0.0032337181171932 0.0452720536406126 0.0121361578353187"
+        rpy="0 0 0" />
+      <mass
+        value="0.0496181144911731" />
+      <inertia
+        ixx="0.000134981193212384"
+        ixy="8.56879612297775E-06"
+        ixz="1.61606028900715E-09"
+        iyy="1.56301043566183E-05"
+        iyz="-2.2624844048142E-08"
+        izz="0.000150348726510377" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://一条狗2.SLDASM/meshes/zuohoudatui_Link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 1 1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://一条狗2.SLDASM/meshes/zuohoudatui_Link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="zuohoudatui_joint"
+    type="revolute">
+    <origin
+      xyz="-0.104300000000071 -0.170990000000138 -0.0534499999999838"
+      rpy="-1.57079632679482 1.47558269853671 1.570796326795" />
+    <parent
+      link="shenti_link" />
+    <child
+      link="zuohoudatui_Link" />
+    <axis
+      xyz="0 0 -1" />
+    <limit
+      lower="-3.14"
+      upper="3.14"
+      effort="0"
+      velocity="0" />
+  </joint>
+  <link
+    name="zuohouxiaotui_Link">
+    <inertial>
+      <origin
+        xyz="-0.036033 0.064166 0.0024208"
+        rpy="0 0 0" />
+      <mass
+        value="0.16453" />
+      <inertia
+        ixx="0.0001401"
+        ixy="5.9849E-05"
+        ixz="-1.1178E-07"
+        iyy="7.752E-05"
+        iyz="1.9539E-07"
+        izz="0.00017716" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://一条狗2.SLDASM/meshes/zuohouxiaotui_Link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 1 1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://一条狗2.SLDASM/meshes/zuohouxiaotui_Link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="zuohouxiaotui_joint"
+    type="revolute">
+    <origin
+      xyz="-0.00997458699830334 0.139644217976347 0.0179999999999982"
+      rpy="-3.14159265358979 0 1.04355821918803" />
+    <parent
+      link="zuohoudatui_Link" />
+    <child
+      link="zuohouxiaotui_Link" />
+    <axis
+      xyz="0 0 -1" />
+    <limit
+      lower="-3.14"
+      upper="3.14"
+      effort="0"
+      velocity="0" />
+  </joint>
+  <link
+    name="zuohoulun_Link">
+    <inertial>
+      <origin
+        xyz="5.5608E-05 9.7201E-05 0.019938"
+        rpy="0 0 0" />
+      <mass
+        value="0.20156" />
+      <inertia
+        ixx="0.00010755"
+        ixy="2.256E-21"
+        ixz="1.3497E-18"
+        iyy="0.00010755"
+        iyz="-2.1719E-20"
+        izz="0.00016086" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://一条狗2.SLDASM/meshes/zuohoulun_Link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 1 1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://一条狗2.SLDASM/meshes/zuohoulun_Link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="zuohoulun_joint"
+    type="revolute">
+    <origin
+      xyz="-0.0695761835940286 0.121616292715296 -0.030100000000266"
+      rpy="3.14159265358979 0 0" />
+    <parent
+      link="zuohouxiaotui_Link" />
+    <child
+      link="zuohoulun_Link" />
+    <axis
+      xyz="0 0 1" />
+    <limit
+      lower="-3.14"
+      upper="3.14"
+      effort="0"
+      velocity="0" />
+  </joint>
+  <link
+    name="youhoudatui_Link">
+    <inertial>
+      <origin
+        xyz="0.043864 -0.01166 0.012063"
+        rpy="0 0 0" />
+      <mass
+        value="0.049618" />
+      <inertia
+        ixx="2.2976E-05"
+        ixy="2.9936E-05"
+        ixz="2.1921E-08"
+        iyy="0.00012764"
+        iyz="-5.8271E-09"
+        izz="0.00015035" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://一条狗2.SLDASM/meshes/youhoudatui_Link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 1 1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://一条狗2.SLDASM/meshes/youhoudatui_Link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="youhoudatui_joint"
+    type="revolute">
+    <origin
+      xyz="0.104299999999963 -0.170989999999968 -0.0534499999999928"
+      rpy="-1.5707963267949 0.622451735865051 -1.57079632679486" />
+    <parent
+      link="shenti_link" />
+    <child
+      link="youhoudatui_Link" />
+    <axis
+      xyz="0 0 -1" />
+    <limit
+      lower="-3.14"
+      upper="3.14"
+      effort="0"
+      velocity="0" />
+  </joint>
+  <link
+    name="youhouxiaotui_Link">
+    <inertial>
+      <origin
+        xyz="-0.0493991638059244 0.0545472534589083 -0.00242077072002839"
+        rpy="0 0 0" />
+      <mass
+        value="0.164534071182814" />
+      <inertia
+        ixx="0.000111056697254311"
+        ixy="6.74978473465933E-05"
+        ixz="1.52431558648921E-07"
+        iyy="0.000106565555337389"
+        iyz="-1.65641380429485E-07"
+        izz="0.000177162409831635" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://一条狗2.SLDASM/meshes/youhouxiaotui_Link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 1 1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://一条狗2.SLDASM/meshes/youhouxiaotui_Link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="youhouxiaotui_joint"
+    type="revolute">
+    <origin
+      xyz="0.1353 -0.035966 0.016"
+      rpy="0 0 0" />
+    <parent
+      link="youhoudatui_Link" />
+    <child
+      link="youhouxiaotui_Link" />
+    <axis
+      xyz="0 0 1" />
+    <limit
+      lower="-3.14"
+      upper="3.14"
+      effort="0"
+      velocity="0" />
+  </joint>
+  <link
+    name="youhoulun_Link">
+    <inertial>
+      <origin
+        xyz="-7.5831E-05 8.2402E-05 0.019938"
+        rpy="0 0 0" />
+      <mass
+        value="0.20156" />
+      <inertia
+        ixx="0.00010755"
+        ixy="8.4033E-21"
+        ixz="-3.3302E-21"
+        iyy="0.00010755"
+        iyz="-2.3037E-20"
+        izz="0.00016086" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://一条狗2.SLDASM/meshes/youhoulun_Link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 1 1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://一条狗2.SLDASM/meshes/youhoulun_Link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="youhoulun_joint"
+    type="revolute">
+    <origin
+      xyz="-0.0948777815163495 0.103099828087369 0.0301000000000001"
+      rpy="0 0 -3.14159265358979" />
+    <parent
+      link="youhouxiaotui_Link" />
+    <child
+      link="youhoulun_Link" />
+    <axis
+      xyz="0 0 1" />
+    <limit
+      lower="-3.14"
+      upper="3.14"
+      effort="0"
+      velocity="0" />
+  </joint>
+  <link
+    name="youqiandatui_Link">
+    <inertial>
+      <origin
+        xyz="0.013697 0.032255 0.0062751"
+        rpy="0 0 0" />
+      <mass
+        value="0.049618" />
+      <inertia
+        ixx="0.00013084"
+        ixy="-2.3455E-05"
+        ixz="4.5019E-09"
+        iyy="1.9768E-05"
+        iyz="2.2231E-08"
+        izz="0.00015035" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://一条狗2.SLDASM/meshes/youqiandatui_Link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 1 1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://一条狗2.SLDASM/meshes/youqiandatui_Link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="youqiandatui_joint"
+    type="revolute">
+    <origin
+      xyz="-0.1043 0.17099 -0.05345"
+      rpy="-1.5708 -0.62245 1.5708" />
+    <parent
+      link="shenti_link" />
+    <child
+      link="youqiandatui_Link" />
+    <axis
+      xyz="0 0 -1" />
+    <limit
+      lower="-3.14"
+      upper="3.14"
+      effort="0"
+      velocity="0" />
+  </joint>
+  <link
+    name="youqianxioatui_Link">
+    <inertial>
+      <origin
+        xyz="-0.058263 0.044956 0.0024208"
+        rpy="0 0 0" />
+      <mass
+        value="0.16453" />
+      <inertia
+        ixx="9.6009E-05"
+        ixy="6.6311E-05"
+        ixz="-1.7712E-07"
+        iyy="0.00012161"
+        iyz="1.3893E-07"
+        izz="0.00017716" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://一条狗2.SLDASM/meshes/youqianxioatui_Link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 1 1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://一条狗2.SLDASM/meshes/youqianxioatui_Link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="youqianxiaotui_joint"
+    type="revolute">
+    <origin
+      xyz="0.032728 0.12433 0.0099"
+      rpy="-3.1416 0 0" />
+    <parent
+      link="youqiandatui_Link" />
+    <child
+      link="youqianxioatui_Link" />
+    <axis
+      xyz="0 0 -1" />
+    <limit
+      lower="-3.14"
+      upper="3.14"
+      effort="0"
+      velocity="0" />
+  </joint>
+  <link
+    name="youqianlun_Link">
+    <inertial>
+      <origin
+        xyz="-8.81105562564599E-05 -6.91149751074413E-05 0.0199376558604239"
+        rpy="0 0 0" />
+      <mass
+        value="0.201564584654321" />
+      <inertia
+        ixx="0.00010755486642454"
+        ixy="-3.84547488752515E-21"
+        ixz="-1.92583139943705E-19"
+        iyy="0.00010755486642454"
+        iyz="9.74087828966412E-20"
+        izz="0.000160858088995815" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://一条狗2.SLDASM/meshes/youqianlun_Link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 1 1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://一条狗2.SLDASM/meshes/youqianlun_Link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="youqianlun_joint"
+    type="revolute">
+    <origin
+      xyz="-0.1102423340241 0.0864754055572288 -0.0300999999999992"
+      rpy="-3.14159265358979 0 -3.14159265358979" />
+    <parent
+      link="youqianxioatui_Link" />
+    <child
+      link="youqianlun_Link" />
+    <axis
+      xyz="0 0 1" />
+    <limit
+      lower="-3.14"
+      upper="3.14"
+      effort="0"
+      velocity="0" />
+  </joint>
+</robot>
