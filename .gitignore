@@ -28,6 +28,7 @@ devel/
 .marscode/
 
 # Embedded git repos (submodules handled separately)
+librealsense/
 vlp16_slam_ws/src/kiss-icp/
 
 # Runtime state (machine-local)
