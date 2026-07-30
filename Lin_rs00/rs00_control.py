@@ -162,6 +162,35 @@ def set_zero_motor(iface, motor_id=127, master_id=0xFD):
     print(f"  [Type 6] 电机 ID={motor_id} 机械零位已设置")
 
 
+def enable_auto_report(iface, motor_id=127, master_id=0xFD, interval_ms=10):
+    """
+    Type 24: 开启电机主动上报。
+
+    开启后电机以固定间隔持续发送 Type 2 反馈帧 (角度/速度/力矩/温度)，
+    无需逐条指令触发。
+
+    参数:
+        interval_ms: 上报间隔 (毫秒, 最小10, 步进5, 默认10)
+                     EPScan_time = 1 + (interval_ms - 10) / 5
+    """
+    # 设置上报间隔 (0x7026)
+    eps_time = max(1, int(1 + (interval_ms - 10) / 5))
+    write_param(iface, 0x7026, struct.pack('<H', eps_time), motor_id, master_id)
+    time.sleep(0.05)
+
+    # Type 24: 开启上报 (F_CMD=0x01)
+    cansend(iface, build_ext_id(0x18, master_id, motor_id),
+            [0, 0, 0, 0, 0, 0, 0, 0x01])
+    print(f"  [Type 24] 电机 ID={motor_id} 主动上报已开启 (间隔{interval_ms}ms)")
+
+
+def disable_auto_report(iface, motor_id=127, master_id=0xFD):
+    """Type 24: 关闭电机主动上报。"""
+    cansend(iface, build_ext_id(0x18, master_id, motor_id),
+            [0, 0, 0, 0, 0, 0, 0, 0x00])
+    print(f"  [Type 24] 电机 ID={motor_id} 主动上报已关闭")
+
+
 # ─── CAN 帧接收 (Python socket CAN) ───
 
 CAN_EFF_FLAG = 0x80000000  # 扩展帧标志
@@ -296,26 +325,40 @@ def get_motor_state(iface, motor_id=127, master_id=0xFD, timeout=0.15,
     ]
     ext_id = build_ext_id(1, tq, motor_id)
 
-    # 同一 socket 收发，零竞争窗口
+    # 同一 socket 收发，验证应答帧来自目标电机
     sock = _create_can_socket(iface, timeout)
     if sock is None:
         return None
 
     _send_raw(sock, ext_id, data)
-    result = _recv_raw(sock)
+
+    deadline = time.time() + timeout
+    state = None
+    while True:
+        remaining = deadline - time.time()
+        if remaining <= 0:
+            break
+        sock.settimeout(min(remaining, 0.05))
+        result = _recv_raw(sock)
+        if result is None:
+            continue  # 超时未到，继续等
+        rx_id, rx_data = result
+
+        # 验证应答来自目标电机 (Type 2: bit15~8 = 回复电机ID)
+        resp_motor = (rx_id >> 8) & 0xFF
+        if resp_motor != motor_id:
+            continue  # 不是目标电机的帧，跳过
+
+        fb_type = (rx_id >> 24) & 0x1F
+        if fb_type != 2:
+            continue
+
+        state = parse_feedback(rx_data)
+        if state:
+            state["motor_id"] = motor_id
+        break
+
     sock.close()
-
-    if result is None:
-        return None
-
-    rx_id, rx_data = result
-    fb_type = (rx_id >> 24) & 0x1F
-    if fb_type != 2:
-        return None
-
-    state = parse_feedback(rx_data)
-    if state:
-        state["motor_id"] = motor_id
     return state
 
 

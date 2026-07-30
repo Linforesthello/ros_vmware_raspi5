@@ -20,20 +20,26 @@ RS00Arm — 双关节串联机械臂控制类
 """
 
 import time
+import struct
+import os
+import json
 from rs00_control import motor_enable, motor_disable, motor_control
 from rs00_control import get_motor_state, parse_feedback
+from rs00_control import set_mode, write_param
 
 
 class RS00Arm:
     """双电机串联机械臂"""
 
-    # 实测机械活动范围（输出轴角度）
-    #   肩膀 (ID=1): -40° ~ +220°
-    #   肘部 (ID=2): -70° ~ +110°
-    DEFAULT_SHOULDER_MIN = -40
-    DEFAULT_SHOULDER_MAX = 220
-    DEFAULT_ELBOW_MIN = -70
-    DEFAULT_ELBOW_MAX = 110
+    # 实测机械活动范围（输出轴角度，用户空间）
+    # 实测于 2026-07-15，折叠位标零后：
+    #   肩膀: 0°(折叠) → -150.7°(机械限位) → 留 2.7° 余量
+    #   肘部: 0°(折叠) → +133.0°(机械限位) → 留 3.0° 余量
+    # 计算: 用户限位 = 实测原始角度 - zero_offset(肩88.1°, 肘196.6°)
+    DEFAULT_SHOULDER_MIN = -148
+    DEFAULT_SHOULDER_MAX = 0
+    DEFAULT_ELBOW_MIN = 0
+    DEFAULT_ELBOW_MAX = 130
 
     def __init__(self, iface="can0",
                  shoulder_id=1, elbow_id=2,
@@ -42,7 +48,7 @@ class RS00Arm:
         参数:
             iface:       CAN 接口名 (默认 "can0")
             shoulder_id: 肩膀电机 CAN ID (默认 1)
-            elbow_id:    肘部电机 CAN ID (默认 2)
+            elbow_id:    肘部电机 CAN ID (默认 2，传 None 为单电机模式)
             master_id:    主机 ID (默认 0xFD)
         """
         self.iface = iface
@@ -50,16 +56,21 @@ class RS00Arm:
         self.elbow_id = elbow_id
         self.master_id = master_id
         self._enabled = False
+        self._csp_mode = False    # 是否处于 CSP 位置模式
 
         # 追踪上一次控制参数，用于非破坏性状态查询
-        self._last_kp = 10
-        self._last_kd = 1
+        # 初始化为 0，避免首次 get_state() 未经用户指令就拽电机
+        self._last_kp = 0
+        self._last_kd = 0
 
         # ─── 软件零点偏移 ───
         # 用户角度 = 电机原始角度 - 偏移
         # set_zero() 将当前位置设为用户 0°
+        # 偏移量保存到文件，下次启动自动加载，无需重复 set_zero
+        self.ZERO_FILE = os.path.expanduser("~/.rs00_zero.json")
         self._zero_shoulder = 0.0
         self._zero_elbow = 0.0
+        self._load_zero_offsets()
 
         # ─── 追踪最后指令位置（电机空间） ───
         # 用于 get_state() 无感查询，避免发 pos=0 把电机拽走
@@ -110,14 +121,41 @@ class RS00Arm:
         state = self.get_state()
         if state['shoulder']:
             self._zero_shoulder = state['shoulder']['position']
-        if state['elbow']:
+        if self.elbow_id is not None and state['elbow']:
             self._zero_elbow = state['elbow']['position']
         print(f"  [ZERO] 肩膀零点={self._zero_shoulder:.1f}°  "
               f"肘部零点={self._zero_elbow:.1f}°")
+        # 保存到文件，下次启动自动加载
+        self._save_zero_offsets()
         # 通知 verify 目标已变化
         self._target_shoulder = 0
         self._target_elbow = 0
         return self
+
+    def _save_zero_offsets(self):
+        """保存零点偏移到文件"""
+        data = {
+            'shoulder': self._zero_shoulder,
+            'elbow': self._zero_elbow,
+            'note': 'rs00_arm.py set_zero() 自动保存'
+        }
+        try:
+            with open(self.ZERO_FILE, 'w') as f:
+                json.dump(data, f)
+        except Exception as e:
+            print(f"  [WARN] 保存零点偏移失败: {e}")
+
+    def _load_zero_offsets(self):
+        """从文件加载零点偏移"""
+        try:
+            with open(self.ZERO_FILE, 'r') as f:
+                data = json.load(f)
+            self._zero_shoulder = data['shoulder']
+            self._zero_elbow = data['elbow']
+            print(f"  [ZERO] 已加载离线偏移: "
+                  f"肩={self._zero_shoulder:.1f}° 肘={self._zero_elbow:.1f}°")
+        except (FileNotFoundError, KeyError, json.JSONDecodeError):
+            pass  # 首次运行或文件损坏，用默认 0
 
     def set_limits(self, shoulder_min=None, shoulder_max=None,
                    elbow_min=None, elbow_max=None):
@@ -146,17 +184,118 @@ class RS00Arm:
     # ─── 基础控制 ───
 
     def enable(self):
-        """使能两个电机"""
+        """使能电机（肘部 ID 为 None 时跳过）"""
         motor_enable(self.iface, self.shoulder_id, self.master_id)
-        motor_enable(self.iface, self.elbow_id, self.master_id)
+        if self.elbow_id is not None:
+            motor_enable(self.iface, self.elbow_id, self.master_id)
         self._enabled = True
         return self
 
     def disable(self):
-        """停止两个电机"""
+        """停止电机（肘部 ID 为 None 时跳过）"""
         motor_disable(self.iface, self.shoulder_id, self.master_id)
-        motor_disable(self.iface, self.elbow_id, self.master_id)
+        if self.elbow_id is not None:
+            motor_disable(self.iface, self.elbow_id, self.master_id)
         self._enabled = False
+        self._csp_mode = False
+        return self
+
+    # ─── CSP 模式（高刚度伺服锁定） ───
+
+    def enable_csp(self, speed_limit=1.0, accel_limit=10.0):
+        """
+        切换到 CSP 循环同步位置模式并使能。
+
+        CSP 由电机内部 PID 锁定位置（位置环 Kp 默认 40），
+        刚度远高于 Type 1 运控模式，到位后掰不动。
+
+        参数:
+            speed_limit: 速度限制 rad/s (默认 3, ≈172°/s)
+            accel_limit: 加速度限制 rad/s² (默认 10)
+        """
+        mids = [self.shoulder_id]
+        if self.elbow_id is not None:
+            mids.append(self.elbow_id)
+        for mid in mids:
+            # RS00 需要 disable → set_mode → enable 才能正确切模式
+            # 注意：切完 CSP 后不要写 0x7016，否则干扰电机内部状态
+            motor_disable(self.iface, mid, self.master_id)
+            time.sleep(0.02)
+            set_mode(self.iface, mid, self.master_id, mode=5)
+            time.sleep(0.05)
+            motor_enable(self.iface, mid, self.master_id)
+            time.sleep(0.05)
+
+            write_param(self.iface, 0x7017,
+                        struct.pack('<f', speed_limit), mid, self.master_id)
+            write_param(self.iface, 0x7022,
+                        struct.pack('<f', accel_limit), mid, self.master_id)
+
+        self._enabled = True
+        self._csp_mode = True
+        print(f"  [CSP] 双电机已切换 (speed={speed_limit}, accel={accel_limit})")
+        return self
+
+    def set_angles_csp(self, shoulder_deg, elbow_deg):
+        """
+        CSP 模式下设目标角度（高刚度锁定）。
+
+        支持单关节控制：传 None 表示不修改该关节。
+        例: set_angles_csp(-45, None) → 只动肩膀
+            set_angles_csp(None, 30)  → 只动肘部
+            set_angles_csp(-45, 30)   → 双关节同时
+        """
+        if shoulder_deg is not None and elbow_deg is not None:
+            s_user, e_user = self._clamp_angles(shoulder_deg, elbow_deg)
+        elif shoulder_deg is not None:
+            s_user, e_user = self._clamp_angles(shoulder_deg, self._target_elbow)
+        elif elbow_deg is not None:
+            s_user, e_user = self._clamp_angles(self._target_shoulder, elbow_deg)
+        else:
+            return self
+
+        if shoulder_deg is not None:
+            s_motor = self._user_to_motor(s_user, 'shoulder')
+            s_rad = s_motor * 3.14159 / 180.0
+            write_param(self.iface, 0x7016,
+                        struct.pack('<f', s_rad), self.shoulder_id, self.master_id)
+            self._last_motor_pos_s = s_motor
+            self._target_shoulder = s_user
+        if elbow_deg is not None and self.elbow_id is not None:
+            e_motor = self._user_to_motor(e_user, 'elbow')
+            e_rad = e_motor * 3.14159 / 180.0
+            write_param(self.iface, 0x7016,
+                        struct.pack('<f', e_rad), self.elbow_id, self.master_id)
+            self._last_motor_pos_e = e_motor
+            self._target_elbow = e_user
+        if self.elbow_id is not None:
+            write_param(self.iface, 0x7016,
+                        struct.pack('<f', e_rad), self.elbow_id, self.master_id)
+
+        # 同步更新电机空间位置，保证后续 get_state() 查询一致性
+        self._last_motor_pos_s = s_motor
+        self._last_motor_pos_e = e_motor
+        self._last_motor_vel = 0
+
+        self._target_shoulder = s_user
+        self._target_elbow = e_user
+        return self
+
+    def enable_operation(self):
+        """切回运控模式（Type 1），适用于快速移动"""
+        mids = [self.shoulder_id]
+        if self.elbow_id is not None:
+            mids.append(self.elbow_id)
+        for mid in mids:
+            motor_disable(self.iface, mid, self.master_id)
+            time.sleep(0.02)
+            set_mode(self.iface, mid, self.master_id, mode=0)
+            time.sleep(0.05)
+            motor_enable(self.iface, mid, self.master_id)
+
+        self._enabled = True
+        self._csp_mode = False
+        print("  [OP] 双电机已切回运控模式")
         return self
 
     def set_angles(self, shoulder_deg, elbow_deg,
@@ -189,8 +328,9 @@ class RS00Arm:
 
         motor_control(self.iface, self.shoulder_id, self.master_id,
                       pos=s_motor, vel=vel, kp=kp, kd=kd, torque=torque)
-        motor_control(self.iface, self.elbow_id, self.master_id,
-                      pos=e_motor, vel=vel, kp=kp, kd=kd, torque=torque)
+        if self.elbow_id is not None:
+            motor_control(self.iface, self.elbow_id, self.master_id,
+                          pos=e_motor, vel=vel, kp=kp, kd=kd, torque=torque)
 
         # 保存用户空间目标供 verify 使用
         self._target_shoulder = s_user
@@ -216,7 +356,10 @@ class RS00Arm:
         return self
 
     def set_elbow(self, deg, vel=0, kp=10, kd=1, torque=0):
-        """单独设置肘部角度 (°)"""
+        """单独设置肘部角度 (°) — 肘部 ID 为 None 时无效"""
+        if self.elbow_id is None:
+            print("  [WARN] 无肘部电机 (elbow_id=None)")
+            return self
         self._last_kp = kp
         self._last_kd = kd
         e_user = max(self._elbow_min, min(self._elbow_max, deg))
@@ -234,8 +377,21 @@ class RS00Arm:
     # ─── 快捷操作 ───
 
     def home(self, vel=30):
-        """归零: 回到 (0°, 0°)"""
-        return self.set_angles(0, 0, vel=vel, kp=self._last_kp, kd=self._last_kd)
+        """归零: 回到安全位置 (默认 -3°, 6°)，末端负载留余量"""
+        target_s = getattr(self, '_home_shoulder', -3)
+        target_e = getattr(self, '_home_elbow', 6)
+        if self._csp_mode:
+            return self.set_angles_csp(target_s, target_e)
+        else:
+            return self.set_angles(target_s, target_e, vel=vel,
+                                   kp=self._last_kp, kd=self._last_kd)
+
+    def set_rest(self, shoulder_deg, elbow_deg):
+        """设置安全归零位（默认 -3°, 6°）"""
+        self._home_shoulder = shoulder_deg
+        self._home_elbow = elbow_deg
+        print(f"  [REST] 归零位已设为: 肩{shoulder_deg}° 肘{elbow_deg}°")
+        return self
 
     def stop(self):
         """紧急停止（立即 disable 两个电机）"""
@@ -269,10 +425,13 @@ class RS00Arm:
                             timeout, kp_hold=self._last_kp, kd_hold=self._last_kd,
                             pos_hold=self._last_motor_pos_s,
                             vel_hold=self._last_motor_vel)
-        e = get_motor_state(self.iface, self.elbow_id, self.master_id,
-                            timeout, kp_hold=self._last_kp, kd_hold=self._last_kd,
-                            pos_hold=self._last_motor_pos_e,
-                            vel_hold=self._last_motor_vel)
+        if self.elbow_id is not None:
+            e = get_motor_state(self.iface, self.elbow_id, self.master_id,
+                                timeout, kp_hold=self._last_kp, kd_hold=self._last_kd,
+                                pos_hold=self._last_motor_pos_e,
+                                vel_hold=self._last_motor_vel)
+        else:
+            e = None
         # 转换到用户空间角度
         if s:
             s["position"] = round(self._motor_to_user(s["position"], 'shoulder'), 1)
@@ -305,10 +464,10 @@ class RS00Arm:
         results = {}
         all_ok = True
 
-        for name, target in [
-            ("shoulder", getattr(self, '_target_shoulder', 0)),
-            ("elbow", getattr(self, '_target_elbow', 0)),
-        ]:
+        targets = [("shoulder", getattr(self, '_target_shoulder', 0))]
+        if self.elbow_id is not None:
+            targets.append(("elbow", getattr(self, '_target_elbow', 0)))
+        for name, target in targets:
             s = state.get(name)
             if s is None:
                 results[name] = None
@@ -336,6 +495,8 @@ class RS00Arm:
 
         # 如果是自测模式，顺带印温度
         for name in ("shoulder", "elbow"):
+            if name == "elbow" and self.elbow_id is None:
+                continue
             s = state.get(name)
             if s:
                 print(f"           {name} 温度={s['temperature']}°C  "
@@ -344,8 +505,9 @@ class RS00Arm:
         return results
 
     def __repr__(self):
+        elbow_str = f"肘#{self.elbow_id}" if self.elbow_id is not None else "肘#无"
         return (f"<RS00Arm iface={self.iface} "
-                f"肩#{self.shoulder_id} 肘#{self.elbow_id} "
+                f"肩#{self.shoulder_id} {elbow_str} "
                 f"限位肩[{self._shoulder_min}°,{self._shoulder_max}°] "
                 f"肘[{self._elbow_min}°,{self._elbow_max}°] "
                 f"kp={self._last_kp}>")
