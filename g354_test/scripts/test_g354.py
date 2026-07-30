@@ -61,27 +61,33 @@ try:
     raw_debug_counter = 0
 
     while True:
-        if ser.in_waiting > 0:
-            rx_data = ser.read(ser.in_waiting)
-            buffer.extend(rx_data)
-            
-            # 调试逻辑：如果无法按帧对齐，前10次直接打印收到的原始数据片段
-            if raw_debug_counter < 10:
-                print(f"[原始数据片段]: {rx_data.hex().upper()}")
+        try:
+            if ser.in_waiting > 0:
+                rx_data = ser.read(ser.in_waiting)
+                if not rx_data:
+                    continue  # CDC ACM 空读保护
+                buffer.extend(rx_data)
+        except serial.SerialException:
+            continue  # 设备暂时不可读，重试
+
+        # 调试逻辑：如果无法按帧对齐，前10次直接打印收到的原始数据片段
+        if raw_debug_counter < 10:
+            if len(buffer) > 0:
+                print(f"[原始数据片段]: {buffer.hex().upper()[:72]}")
                 raw_debug_counter += 1
 
-            # 帧解析逻辑
-            while len(buffer) >= 36:
-                # 寻找标准包头 0x80 和包尾 0x0D
-                if buffer[0] == 0x80 and buffer[35] == 0x0D:
-                    packet = buffer[:36]
-                    parse_and_display(packet)
-                    del buffer[:36]
-                else:
-                    # 如果错位，剔除第一个字节继续对齐
-                    buffer.pop(0)
-        else:
-            time.sleep(0.001)
+        # 帧解析逻辑
+        while len(buffer) >= 36:
+            # 寻找标准包头 0x80 和包尾 0x0D
+            if buffer[0] == 0x80 and buffer[35] == 0x0D:
+                packet = buffer[:36]
+                parse_and_display(packet)
+                del buffer[:36]
+            else:
+                # 如果错位，剔除第一个字节继续对齐
+                buffer.pop(0)
+
+        time.sleep(0.001)
                     
 except KeyboardInterrupt:
     print("\n\n正在停止采样并退出...")

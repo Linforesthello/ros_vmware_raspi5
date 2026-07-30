@@ -30,6 +30,8 @@ devel/
 # Embedded git repos (submodules handled separately)
 librealsense/
 vlp16_slam_ws/src/kiss-icp/
+g354_test/reference/G354_Attitude-algorithm/
+r2_integration/g354_driver/reference/G354_Attitude-algorithm/
 
 # Runtime state (machine-local)
 .can_counter.json
