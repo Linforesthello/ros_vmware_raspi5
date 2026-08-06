@@ -38,3 +38,7 @@ r2_integration/g354_driver/reference/G354_Attitude-algorithm/
 
 robstride_rs00/
 r2_integration/
+
+# bag 数据不入库
+*.bag
+
