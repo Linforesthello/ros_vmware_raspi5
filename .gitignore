@@ -42,3 +42,7 @@ r2_integration/
 # bag 数据不入库
 *.bag
 
+
+# bag 数据与分析导出不入库（目录形式，非 *.bag 后缀）
+bags/raw/
+bags/csv/
