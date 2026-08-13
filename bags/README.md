@@ -39,19 +39,23 @@
 | map_run_0809_2133 | 08-09 | 建图（重影 bug 版本） | 修复前，见 `doc/retrospect/2026-08-09_map_double_ghost.md` |
 | map_run_0811_1925 | 08-11 | KISS 帧率修复后重录 | 311.7s / 1634 帧，地图即 D4 地图 |
 | stage_0812_2111 | 08-12 | 建图（新采集） | 产物 stage_0812_map（用途待核实） |
+| map_take3 | 08-13 | 短段录制验证（65.9s，只录 3 点云话题） | 无重影，墙段 99 格=4.95m；验证性录制 |
+| map_final_0813_1727_seg1 | 08-13 | 正式长录 seg1（直行段，35.7s） | 0 空窗，KISS 7.9Hz |
+| map_final_0813_1728_seg2 | 08-13 | 正式长录 seg2（转弯/绕行段，33.9s） | 0 空窗，KISS 7.1Hz，**正式地图来源** |
 
 ## maps/ 地图产物
 
 | 路径 | 内容 |
 |:-----|:-----|
 | `maps/d4/` | D4 地图（map_run_0811_1925.pgm + map.yaml），部署副本 → N97 `~/maps/` |
+| `maps/map_final_0813/` | **正式地图（map.pgm + map.yaml，z_min 0.3 出图）+ 分段中间产物（seg1/seg2 ply/pgm）**，部署副本 → N97 `~/maps/` |
 | `maps/stage_0812/` | 08-12 建图产物（pgm/yaml/raw.ply） |
 | `maps/map_run_0808_2107/` | 0808 建图尝试产物（map v2 系列） |
 | `maps/map_run_0808_2132/` | 0808 建图尝试产物（map2d / map_corridor / v3 系列） |
 | `maps/map_run_0809_2133/` | 0809 重影版本图产物 |
 | `maps/map_run_0811_1925/` | 0811 图产物（ply / preview / map.yaml；pgm 见 `maps/d4/`） |
 | `maps/stage_0812_map.pgm/.preview` | 与 `maps/stage_0812/` 内文件重复（归位保留，未去重） |
-| `maps/compare_*.png` | 0809 vs 0811、0811 vs 0812 地图对比图 |
+| `maps/compare_*.png` | 0809 vs 0811、0811 vs 0812、0813 seg1 vs seg2 地图对比图 |
 
 ## 分析结果摘要（2026-08-06，底盘）
 
