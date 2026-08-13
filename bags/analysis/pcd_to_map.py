@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 """PLY → 2D 占用网格（PGM+YAML，Nav2 map_server 格式）
 
-流程: 读点云 → z 高度滤波(0.1<z<1.5m) → xy 栅格化 → 占用阈值 → map.pgm/map.yaml
-用法: python3 pcd_to_map.py <input.ply> [输出.pgm] [分辨率=0.05] [z_min=0.1] [z_max=1.5] [占用阈值=3]
+流程: 读点云 → z 高度滤波(0.3<z<1.5m) → xy 栅格化 → 占用阈值 → map.pgm/map.yaml
+用法: python3 pcd_to_map.py <input.ply> [输出.pgm] [分辨率=0.05] [z_min=0.3] [z_max=1.5] [占用阈值=3]
+注: z_min 默认 0.3（2026-08-13 修正）：雷达装高 0.56m，z<0.3 为下射环地面点，
+    投影产生"地面雾"（0811 地图 28% 占用格来自地面），z_min=0.1 时雾严重
 """
 import sys
 import numpy as np
@@ -22,7 +24,7 @@ def read_ply_bin(path):
     return np.frombuffer(data, dtype='<f4').reshape(n, 3)
 
 
-def to_map(xyz, res=0.05, z_min=0.1, z_max=1.5, occ_thresh=3):
+def to_map(xyz, res=0.05, z_min=0.3, z_max=1.5, occ_thresh=3):
     """z 高度滤波后 xy 栅格化，命中 >=occ_thresh 的格为占用(100)"""
     mask = (xyz[:, 2] > z_min) & (xyz[:, 2] < z_max)
     pts = xyz[mask][:, :2]
@@ -53,7 +55,7 @@ if __name__ == '__main__':
     ply = sys.argv[1]
     pgm = sys.argv[2] if len(sys.argv) > 2 else 'map.pgm'
     res = float(sys.argv[3]) if len(sys.argv) > 3 else 0.05
-    z_min = float(sys.argv[4]) if len(sys.argv) > 4 else 0.1
+    z_min = float(sys.argv[4]) if len(sys.argv) > 4 else 0.3
     z_max = float(sys.argv[5]) if len(sys.argv) > 5 else 1.5
     thr = int(sys.argv[6]) if len(sys.argv) > 6 else 3
 
